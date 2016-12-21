@@ -1,2 +1,2 @@
 github "lyft/mapper" ~> 5.0
-github "ReactiveCocoa/ReactiveSwift" "1.0.0-alpha.3"
+github "ReactiveCocoa/ReactiveSwift" "1.0.0-rc.2"
