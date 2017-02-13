@@ -17,7 +17,7 @@ class MockDataLoader {
     }
 
     func array(_ fileName: String) -> SignalProducer<Any, NSError> {
-        let json = try! JSONSerialization.jsonObject(with: self.jsonData(fileName), options: []) as! [[String: Any]]
+        let json = try! JSONSerialization.jsonObject(with: self.jsonData(fileName), options: []) as! [[String: Any]?]
         return SignalProducer(value: json)
     }
 

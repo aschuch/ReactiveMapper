@@ -95,6 +95,58 @@ extension SignalProtocol where Value == Any {
             }
     }
 
+    /// Maps the given JSON object array within the stream to an array of optional objects of the given `type`.
+    ///
+    /// - parameter type: The type of the array that should be returned
+    /// - parameter rootKeys: An array of keys that should be traversed in order to find a nested JSON object. The resulting object is subsequently used for further decoding.
+    /// - parameter innerRootKeys: An array of keys that should traversed in order to find a nested JSON object. The resulting object is subsequently used for further decoding.
+    ///                            In contrast to the `rootKeys`, the `innerRootKeys` are applied on each nested array element and the resulting object is used for decoding.
+    ///                            For example, use .mapToType(User.self, rootKeys: ["outer"], innerRootKeys: ["inner"]) to decode the following JSON
+    /// ```
+    /// {
+    ///   "outer": [
+    ///     {
+    ///       "inner": { "name": "Alex" }
+    ///     },
+    ///     {
+    ///       "inner": { "name": "Tom" }
+    ///     }
+    ///   ]
+    /// }
+    /// ```
+    ///
+    /// Supports `null` objects like:
+    /// ```
+    /// [
+    ///     null,
+    ///     { "name: "Alex" },
+    ///     { "name: "Tom" }
+    /// ]
+    /// ```
+    ///
+    /// - returns: A new Signal emitting an array of decoded objects.
+    public func mapToOptionalTypeArray<T: Mappable>(_ type: T.Type, rootKeys: [String]? = nil, innerRootKeys: [String]? = nil) -> Signal<[T?], ReactiveMapperError> {
+        return signal
+            .mapError { ReactiveMapperError.underlying($0) }
+            .attemptMap { json -> Result<[T?], ReactiveMapperError> in
+                if let array = extract(json, rootKeys: rootKeys) as? [NSDictionary?] {
+                    return unwrapThrowableResult {
+                        try array.map { jsonObject in
+                            guard let jsonObject = jsonObject else { return nil }
+                            if let jsonObject = extract(jsonObject, rootKeys: innerRootKeys) as? NSDictionary {
+                                return type.from(jsonObject)
+                            }
+                            throw MapperError.customError(field: "", message: "Could not parse inner object with root keys: \(innerRootKeys)")
+                        }
+                    }
+                }
+                
+                let info = [NSLocalizedFailureReasonErrorKey: "The provided `Value` could not be cast to `[NSDictionary]` or there is no array of values at the given `rootKeys`: \(rootKeys)"]
+                let error = NSError(domain: ReactiveMapperErrorDomain, code: -1, userInfo: info)
+                return .failure(.underlying(error))
+        }
+    }
+
 }
 
 // MARK: Signal
@@ -134,6 +186,40 @@ extension SignalProducerProtocol where Value == Any {
     /// - returns: A new SignalProducer emitting an array of decoded objects.
     public func mapToTypeArray<T: Mappable>(_ type: T.Type, rootKeys: [String]? = nil, innerRootKeys: [String]? = nil) -> SignalProducer<[T], ReactiveMapperError> {
         return lift { $0.mapToTypeArray(type, rootKeys: rootKeys, innerRootKeys: innerRootKeys) }
+    }
+
+    /// Maps the given JSON object array within the stream to an array of optional objects of the given `type`.
+    ///
+    /// - parameter type: The type of the array that should be returned
+    /// - parameter rootKeys: An array of keys that should be traversed in order to find a nested JSON object. The resulting object is subsequently used for further decoding.
+    /// - parameter innerRootKeys: An array of keys that should traversed in order to find a nested JSON object. The resulting object is subsequently used for further decoding.
+    ///                            In contrast to the `rootKeys`, the `innerRootKeys` are applied on each nested array element and the resulting object is used for decoding.
+    ///                            For example, use .mapToType(User.self, rootKeys: ["outer"], innerRootKeys: ["inner"]) to decode the following JSON
+    /// ```
+    /// {
+    ///   "outer": [
+    ///     {
+    ///       "inner": { "name": "Alex" }
+    ///     },
+    ///     {
+    ///       "inner": { "name": "Tom" }
+    ///     }
+    ///   ]
+    /// }
+    /// ```
+    ///
+    /// Supports `null` objects like:
+    /// ```
+    /// [
+    ///     null,
+    ///     { "name: "Alex" },
+    ///     { "name: "Tom" }
+    /// ]
+    /// ```
+    ///
+    /// - returns: A new SignalProducer emitting an array of decoded objects.
+    public func mapToOptionalTypeArray<T: Mappable>(_ type: T.Type, rootKeys: [String]? = nil, innerRootKeys: [String]? = nil) -> SignalProducer<[T?], ReactiveMapperError> {
+        return lift { $0.mapToOptionalTypeArray(type, rootKeys: rootKeys, innerRootKeys: innerRootKeys) }
     }
 
 }

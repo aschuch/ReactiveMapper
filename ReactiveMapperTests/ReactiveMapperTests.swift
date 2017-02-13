@@ -13,7 +13,7 @@ import ReactiveSwift
 class ReactiveMapperTests: XCTestCase {
 
     let mockData = MockDataLoader()
-
+    
     func testMapToObject() {
         var user: User?
         mockData.dictionary("user")
@@ -29,8 +29,21 @@ class ReactiveMapperTests: XCTestCase {
             .mapToTypeArray(Task.self)
             .startWithResult { tasks = $0.value }
 
-        XCTAssertNotNil(tasks, "mapToType should not return nil tasks")
+        XCTAssertNotNil(tasks, "mapToTypeArray should not return nil tasks")
         XCTAssertTrue((tasks!).count == 3, "mapJSON returned wrong number of tasks")
+    }
+
+    func testMapToOptionalObjectArray() {
+        var tasks: [Task?]?
+        mockData.array("tasks_null_object")
+            .mapToOptionalTypeArray(Task.self)
+            .startWithResult {
+                print($0)
+                tasks = $0.value
+        }
+        
+        XCTAssertNotNil(tasks, "mapToOptionalTypeArray should not return nil tasks")
+        XCTAssertTrue((tasks!).count == 4, "mapJSON returned wrong number of tasks")
     }
 
     func testInvalidTasks() {
@@ -78,7 +91,7 @@ class ReactiveMapperTests: XCTestCase {
             .mapToTypeArray(Task.self, rootKeys: ["tasks"])
             .startWithResult { tasks = $0.value }
 
-        XCTAssertNotNil(tasks, "mapToType should not return nil tasks")
+        XCTAssertNotNil(tasks, "mapToTypeArray should not return nil tasks")
         XCTAssertTrue((tasks!).count == 3, "mapJSON returned wrong number of tasks")
     }
 
@@ -88,7 +101,7 @@ class ReactiveMapperTests: XCTestCase {
             .mapToTypeArray(Task.self, rootKeys: ["taskList", "tasks"])
             .startWithResult { tasks = $0.value }
 
-        XCTAssertNotNil(tasks, "mapToType should not return nil tasks")
+        XCTAssertNotNil(tasks, "mapToTypeArray should not return nil tasks")
         XCTAssertTrue((tasks!).count == 3, "mapJSON returned wrong number of tasks")
     }
 
@@ -98,7 +111,7 @@ class ReactiveMapperTests: XCTestCase {
             .mapToTypeArray(Task.self, rootKeys: ["tasks"], innerRootKeys: ["task"])
             .startWithResult { tasks = $0.value }
 
-        XCTAssertNotNil(tasks, "mapToType should not return nil tasks")
+        XCTAssertNotNil(tasks, "mapToTypeArray should not return nil tasks")
         XCTAssertTrue((tasks!).count == 3, "mapJSON returned wrong number of tasks")
     }
 
@@ -108,7 +121,7 @@ class ReactiveMapperTests: XCTestCase {
             .mapToTypeArray(Task.self, rootKeys: ["taskList", "tasks"], innerRootKeys: ["task", "t"])
             .startWithResult { tasks = $0.value }
 
-        XCTAssertNotNil(tasks, "mapToType should not return nil tasks")
+        XCTAssertNotNil(tasks, "mapToTypeArray should not return nil tasks")
         XCTAssertTrue((tasks!).count == 3, "mapJSON returned wrong number of tasks")
     }
 
