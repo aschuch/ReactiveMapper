@@ -47,7 +47,7 @@ extension SignalProtocol where Value == Any {
                     return unwrapThrowableResult { try type.init(map: Mapper(JSON: json)) }
                 }
 
-                let info = [NSLocalizedFailureReasonErrorKey: "The provided `Value` could not be cast to `NSDictionary` or there is no value at the given `rootKeys`: \(rootKeys)"]
+                let info = [NSLocalizedFailureReasonErrorKey: "The provided `Value` could not be cast to `NSDictionary` or there is no value at the given `rootKeys`: \(String(describing: rootKeys))"]
                 let error = NSError(domain: ReactiveMapperErrorDomain, code: -1, userInfo: info)
                 return .failure(.underlying(error))
             }
@@ -84,12 +84,12 @@ extension SignalProtocol where Value == Any {
                             if let jsonObject = extract(jsonObject, rootKeys: innerRootKeys) as? NSDictionary {
                                 return try type.init(map: Mapper(JSON: jsonObject))
                             }
-                            throw MapperError.customError(field: "", message: "Could not parse inner object with root keys: \(innerRootKeys)")
+                            throw MapperError.customError(field: "", message: "Could not parse inner object with root keys: \(String(describing: innerRootKeys))")
                         }
                     }
                 }
 
-                let info = [NSLocalizedFailureReasonErrorKey: "The provided `Value` could not be cast to `[NSDictionary]` or there is no array of values at the given `rootKeys`: \(rootKeys)"]
+                let info = [NSLocalizedFailureReasonErrorKey: "The provided `Value` could not be cast to `[NSDictionary]` or there is no array of values at the given `rootKeys`: \(String(describing: rootKeys))"]
                 let error = NSError(domain: ReactiveMapperErrorDomain, code: -1, userInfo: info)
                 return .failure(.underlying(error))
             }
@@ -99,7 +99,7 @@ extension SignalProtocol where Value == Any {
 
 // MARK: Signal
 
-extension SignalProducerProtocol where Value == Any {
+extension SignalProducer where Value == Any {
 
     /// Maps the given JSON object within the stream to an object of given `type`
     ///
